@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0b0b10;
+  --ink-soft: #15151e;
+  --panel: #1b1b26;
+  --paper: #f6f3ea;
+  --flame: #ff4d3d;
+  --grape: #8b5cf6;
+  --lemon: #ffd23f;
+  --line: #2a2a38;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-panel: var(--panel);
+  --color-paper: var(--paper);
+  --color-flame: var(--flame);
+  --color-grape: var(--grape);
+  --color-lemon: var(--lemon);
+  --color-line: var(--line);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+}
+
+* {
+  border-color: var(--line);
+}
+
+body {
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--flame);
+  color: var(--ink);
+}
+
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(3%, -4%) scale(1.08); }
+  66% { transform: translate(-3%, 3%) scale(0.94); }
+}
+
+.animate-blob {
+  animation: blob-float 14s ease-in-out infinite;
+}
+
+.animate-blob-slow {
+  animation: blob-float 20s ease-in-out infinite reverse;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+}
+
+@keyframes shirt-sway {
+  0%, 100% { transform: rotate(-2deg) translateY(0px); }
+  50% { transform: rotate(2deg) translateY(-6px); }
+}
+
+.animate-sway {
+  animation: shirt-sway 6s ease-in-out infinite;
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--flame), var(--lemon) 50%, var(--grape));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--paper);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input::placeholder {
+  color: color-mix(in srgb, var(--paper) 35%, transparent);
+}
+
+.input:focus {
+  border-color: var(--flame);
+}
