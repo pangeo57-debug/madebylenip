@@ -1,0 +1,9 @@
+# Only the build-skipping rule lives here. Build command, publish directory and
+# the Next.js runtime are left to Netlify's auto-detection, which already works
+# for this project — anything not set here keeps using the UI settings.
+
+[build]
+  # Netlify skips the build when this command exits 0. `git diff --quiet`
+  # exits 0 when it finds no differences, so this reads as: "if nothing but
+  # Markdown changed since the last commit, don't spend a build on it."
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)*.md'"

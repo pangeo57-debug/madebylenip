@@ -104,6 +104,48 @@ Steps: create `main` from the current branch, set it as the default on GitHub
 (Settings → General → Default branch), then point Netlify at it
 (Site configuration → Build & deploy → Branches → Production branch).
 
+## Not burning build minutes
+
+Netlify charges you for **builds**, not for pushes — but by default every push
+to a connected branch starts one, so they feel like the same thing. They don't
+have to be. A failed build costs the same as a successful one, and so does a
+build for a change to a README.
+
+Working locally costs nothing at all: `npm run dev` and `npm run build` on your
+own machine are free and unlimited. Everything below is about controlling when
+Netlify builds.
+
+**1. Turn off automatic deploys.** The big one, and the only one that's a
+setting rather than a habit. Netlify → Site configuration → Build & deploy →
+Continuous deployment → **Stop builds**. Now pushes are free, and you deploy
+when you press **Trigger deploy** in the Netlify UI. This is the setup you want
+while iterating.
+
+**2. Turn off previews you aren't using.** Same screen: deploy previews and
+branch deploys each cost a build too. Keep them if you're sending Elena links;
+switch them off if you aren't.
+
+**3. Skip a build from the commit message.** Put `[skip ci]` anywhere in it and
+Netlify won't build that push:
+
+```bash
+git commit -m "Fix typo in README [skip ci]"
+```
+
+**4. Skip docs-only builds automatically.** `netlify.toml` in this repo does
+this already — if a push changes nothing but Markdown, the build is skipped
+without you having to remember anything.
+
+**5. Always `npm run build` locally first.** A build that fails on Netlify
+costs exactly as much as one that works. Catching it on your machine is free.
+
+**6. Push once, not five times.** Commits are free; it's the push that starts
+the build. Commit as often as you like locally, then push when the piece of
+work is actually done.
+
+> Bandwidth (people visiting the site) is billed separately from builds. A live
+> site sitting there costs you nothing to keep online.
+
 ## Common problems
 
 **`command not found: npm`** — Node isn't installed. https://nodejs.org, LTS.
