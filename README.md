@@ -84,12 +84,24 @@ These are the spots that need Lenip's real details — all in one place each:
 
 ## Deploying
 
-The easiest path is [Vercel](https://vercel.com/new) — connect the repo, add
-the environment variables above in project settings, deploy.
+Currently deployed on **Netlify**, which auto-detects Next.js and runs the
+`/api/preorder` route as a function. [Vercel](https://vercel.com/new) works the
+same way.
 
-**Important:** on most serverless hosts (Vercel included) the filesystem is
-read-only in production, so `data/preorders.jsonl` won't persist there. In
-production, email (`RESEND_API_KEY` + `OWNER_EMAIL`) is the reliable channel.
+### Set the environment variables — the site does not work without them
+
+On a serverless host the filesystem is read-only, so `data/preorders.jsonl`
+**does not persist in production**. Email is the only real delivery channel
+there, which makes `RESEND_API_KEY` and `OWNER_EMAIL` required, not optional.
+
+Set them in **Netlify → Site configuration → Environment variables**, then
+redeploy (env vars are read at request time, but a redeploy is the reliable
+way to be sure).
+
+Until they're set, the order form deliberately returns an error telling the
+customer to email instead. That's on purpose: an order that reaches nobody must
+never show a confirmation screen. `src/app/api/preorder/route.ts` enforces it.
+
 Once order volume grows, swap `src/lib/storage.ts` for a real database —
 everything else is written so that's a small, contained change.
 

@@ -28,19 +28,22 @@ function shippingAddress(order: PreorderInput) {
     .join("\n");
 }
 
-// If email isn't configured yet, we no-op instead of failing the request —
-// the order is still saved locally (see lib/storage.ts) and logged to the
-// server console so nothing is silently lost during setup.
+/**
+ * Returns whether the order actually reached Lenip. The caller needs to know:
+ * on a serverless host the local file fallback doesn't persist, so email is
+ * often the only real delivery channel — and an order nobody receives must
+ * never be reported to the customer as placed.
+ */
 export async function notifyOwnerOfPreorder(
   order: PreorderInput,
   artwork?: DecodedArtwork
-) {
+): Promise<boolean> {
   if (!resend || !ownerEmail) {
-    console.log(
-      "[email] RESEND_API_KEY / OWNER_EMAIL not set — skipping owner notification.",
+    console.warn(
+      "[email] RESEND_API_KEY / OWNER_EMAIL not set — the order was NOT emailed.",
       { ...order, artwork: order.artwork ? "[image attached]" : null }
     );
-    return;
+    return false;
   }
 
   const rows: [string, string][] = [
@@ -93,6 +96,8 @@ export async function notifyOwnerOfPreorder(
         ]
       : undefined,
   });
+
+  return true;
 }
 
 export async function sendCustomerConfirmation(order: PreorderInput) {
