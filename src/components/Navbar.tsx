@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { Shirt } from "lucide-react";
 
 const links = [
-  { href: "#drops", label: "Drops" },
+  { href: "#styles", label: "Styles" },
   { href: "#how-it-works", label: "How it works" },
-  { href: "#preorder", label: "Preorder" },
+  { href: "#design", label: "Design yours" },
   { href: "#faq", label: "FAQ" },
 ];
 
@@ -43,10 +43,10 @@ export default function Navbar() {
         </div>
 
         <a
-          href="#preorder"
+          href="#design"
           className="rounded-full bg-paper px-4 py-2 text-sm font-semibold text-ink transition-transform hover:scale-105"
         >
-          Preorder now
+          Design yours
         </a>
       </nav>
     </header>

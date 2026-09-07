@@ -1,15 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowDown, Sparkles } from "lucide-react";
-import TshirtMock from "./TshirtMock";
+import { ArrowDown, Sparkles as SparklesIcon } from "lucide-react";
+import GarmentMock from "./GarmentMock";
+import Sparkles from "./Sparkles";
+import { siteConfig } from "@/lib/site-config";
 
 export default function Hero() {
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
-      <div className="animate-blob pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-flame/30 blur-3xl" />
-      <div className="animate-blob-slow pointer-events-none absolute -right-24 top-40 h-96 w-96 rounded-full bg-grape/30 blur-3xl" />
+      <div className="animate-blob pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-flame/25 blur-3xl" />
+      <div className="animate-blob-slow pointer-events-none absolute -right-24 top-40 h-96 w-96 rounded-full bg-grape/25 blur-3xl" />
+      <Sparkles />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-24 pt-16 md:grid-cols-2 md:pt-24">
         <motion.div
@@ -18,77 +21,99 @@ export default function Hero() {
           transition={{ duration: 0.6 }}
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/60 px-3 py-1 text-xs font-medium text-paper/70">
-            <Sparkles size={14} className="text-lemon" />
-            New drop every month — preorders open now
+            <SparklesIcon size={14} className="text-lemon" />
+            Handmade to order · Toddler to adult sizes
           </span>
 
           <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-            Wear a shirt
+            Their name.
             <br />
-            nobody else has.
+            Their shirt.
             <br />
-            <span className="text-gradient">Made by Lenip.</span>
+            <span className="shimmer-text">Made by Lenip.</span>
           </h1>
 
           <p className="mt-6 max-w-md text-lg text-paper/70">
-            Original designs, printed to order in small batches. Reserve your size
-            now with a no-payment preorder — we&apos;ll reach out personally before
-            anything is charged.
+            Custom name sweatshirts, tees and hoodies — cut and pressed by hand,
+            one at a time. Pick the garment, the color and the lettering, and
+            watch it come together on screen.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <a
-              href="#preorder"
+              href="#design"
               className="rounded-full bg-flame px-6 py-3 text-sm font-semibold text-ink transition-transform hover:scale-105"
             >
-              Reserve your shirt
+              Design yours
             </a>
             <a
-              href="#drops"
+              href="#styles"
               className="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 text-sm font-semibold text-paper/80 transition-colors hover:border-paper/40 hover:text-paper"
             >
-              See the drop
+              See the styles
               <ArrowDown size={16} />
             </a>
+            {siteConfig.etsyEnabled && (
+              <a
+                href={siteConfig.etsyShopUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-semibold text-lemon hover:underline"
+              >
+                Or buy on Etsy →
+              </a>
+            )}
           </div>
 
           <p className="mt-6 text-xs uppercase tracking-widest text-paper/40">
-            No card required to preorder · Secure checkout coming soon via Stripe
+            No card required to order · We confirm every order by message first
           </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.15 }}
-          className="relative mx-auto grid w-full max-w-sm grid-cols-2 gap-6"
+          className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-6"
         >
-          <TshirtMock
-            from="#ff4d3d"
-            to="#ffd23f"
-            pattern="burst"
-            label="Sunset burst tee"
+          <GarmentMock
+            garment="Sweatshirt"
+            garmentColor="Heather Grey"
+            printColor="Mint"
+            finish="Smooth vinyl"
+            font="Varsity"
+            orientation="Vertical"
+            name="Wesson"
             className="animate-sway w-full drop-shadow-2xl"
           />
-          <TshirtMock
-            from="#8b5cf6"
-            to="#ff4d3d"
-            pattern="stripe"
-            label="Grape stripe tee"
+          <GarmentMock
+            garment="Sweatshirt"
+            garmentColor="Heather Grey"
+            printColor="Blush"
+            finish="Smooth vinyl"
+            font="Varsity"
+            orientation="Vertical"
+            name="Aria"
             className="animate-sway mt-10 w-full drop-shadow-2xl [animation-delay:-2s]"
           />
-          <TshirtMock
-            from="#ffd23f"
-            to="#8b5cf6"
-            pattern="grid"
-            label="Lemon grid tee"
+          <GarmentMock
+            garment="T-shirt"
+            garmentColor="Black"
+            printColor="Gold"
+            finish="Glitter vinyl"
+            font="Script"
+            orientation="Vertical"
+            name="Mila"
             className="animate-sway w-full drop-shadow-2xl [animation-delay:-4s]"
           />
-          <TshirtMock
-            from="#ff4d3d"
-            to="#8b5cf6"
-            pattern="solid"
-            label="Flame fade tee"
+          <GarmentMock
+            garment="Hoodie"
+            garmentColor="Sand"
+            printColor="Baby Blue"
+            finish="Smooth vinyl"
+            font="Varsity"
+            orientation="Vertical"
+            name="Jaxon"
             className="animate-sway mt-10 w-full drop-shadow-2xl [animation-delay:-1s]"
           />
         </motion.div>

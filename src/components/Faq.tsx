@@ -3,23 +3,34 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { siteConfig } from "@/lib/site-config";
 
 const faqs = [
   {
-    q: "Do I pay when I preorder?",
-    a: "No. The preorder form only reserves your spot and size. We reach out to confirm details, and payment options (Stripe, Venmo) are shared once your order is confirmed.",
+    q: "Do I pay when I place the order?",
+    a: "No. The form here only reserves your order and tells Lenip exactly what you want. She replies with the total including shipping, and payment happens after you've confirmed everything.",
   },
   {
-    q: "How will I actually pay once it's confirmed?",
-    a: "We're rolling payments out carefully. First up is a Stripe secure payment link or Venmo, sent directly to you — never a request for your card number over text or DM. Card and Apple Pay checkout on-site are coming next.",
+    q: "How do I actually pay, then?",
+    a: siteConfig.etsyEnabled
+      ? "Through the Etsy shop, which handles payment securely and gives you buyer protection. Card and Apple Pay checkout directly on this site are being added carefully after that."
+      : "Payment options (a secure Stripe link, or Venmo) are sent to you directly once your order is confirmed. You'll never be asked for card numbers over text or DM — if anyone does that claiming to be us, it isn't us.",
   },
   {
-    q: "What sizes are available?",
-    a: "Most drops run S–XXL. Let us know your size in the preorder form and we'll confirm availability.",
+    q: "How much is shipping?",
+    a: "It depends on where you are and how many items you order, so it's quoted with your total before you pay. Nothing is charged until you say yes.",
   },
   {
-    q: "How long does printing and shipping take?",
-    a: "Each batch is printed after preorders close for that drop, typically 1–2 weeks, then shipped right away. We'll keep you updated by email.",
+    q: "What sizes do you make?",
+    a: "Toddler 2T through adult XXL, including youth sizes in between. Matching sets for siblings (or a whole family) are very doable — just say so in the notes.",
+  },
+  {
+    q: "How long does it take?",
+    a: `Usually ${siteConfig.turnaround} from the moment your order is confirmed, then shipping time on top. If you need it for a specific date, mention it in the notes and Lenip will tell you honestly whether it's possible.`,
+  },
+  {
+    q: "Can I get a long name, or two names?",
+    a: "Names up to 14 characters print cleanly. Longer than that, or more than one name on a garment, is often still possible — put it in the notes and ask.",
   },
 ];
 

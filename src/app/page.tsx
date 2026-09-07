@@ -3,8 +3,8 @@ import Hero from "@/components/Hero";
 import Marquee from "@/components/Marquee";
 import ShowcaseGallery from "@/components/ShowcaseGallery";
 import HowItWorks from "@/components/HowItWorks";
+import Customizer from "@/components/Customizer";
 import WhyUs from "@/components/WhyUs";
-import PreorderSection from "@/components/PreorderSection";
 import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
 
@@ -17,8 +17,8 @@ export default function Home() {
         <Marquee />
         <ShowcaseGallery />
         <HowItWorks />
+        <Customizer />
         <WhyUs />
-        <PreorderSection />
         <Faq />
       </main>
       <Footer />

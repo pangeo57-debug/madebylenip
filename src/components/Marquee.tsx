@@ -1,9 +1,9 @@
 const words = [
-  "SMALL BATCH",
-  "PRINTED TO ORDER",
-  "ORIGINAL ART",
+  "PERSONALIZED NAMES",
+  "PRESSED BY HAND",
+  "TODDLER TO ADULT",
   "MADE BY LENIP",
-  "NEW DROP MONTHLY",
+  "GLITTER OR SMOOTH",
 ];
 
 export default function Marquee() {

@@ -1,28 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, Palette, Truck, MessageCircle } from "lucide-react";
+import { ShieldCheck, Baby, Truck, MessageCircle } from "lucide-react";
 
 const points = [
   {
-    icon: Palette,
-    title: "Original art, every drop",
-    body: "Every design is drawn and printed specifically for Made by Lenip — never stock clipart.",
+    icon: Baby,
+    title: "Toddler to adult",
+    body: "Sized from 2T all the way to adult XXL — matching sets for siblings and grown-ups are easy.",
   },
   {
     icon: ShieldCheck,
     title: "No surprise charges",
-    body: "Preordering never charges your card. We confirm details with you personally before any payment happens.",
+    body: "Ordering here never charges your card. You get the total, including shipping, before you pay anything.",
   },
   {
     icon: Truck,
-    title: "Printed after the batch closes",
-    body: "Small, made-to-order runs mean less waste and a shirt that actually fits the size you asked for.",
+    title: "Pressed by hand, then shipped",
+    body: "Each name is cut from vinyl and pressed one at a time, then packed and shipped straight to you.",
   },
   {
     icon: MessageCircle,
     title: "A real person replies",
-    body: "Every preorder gets a reply from Lenip directly — not an autoresponder.",
+    body: "Every order gets a reply from Lenip directly — not an autoresponder.",
   },
 ];
 
@@ -30,7 +30,7 @@ export default function WhyUs() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-24">
       <p className="text-xs font-semibold uppercase tracking-widest text-lemon">
-        Why preorder here
+        Why order here
       </p>
       <h2 className="mt-2 max-w-lg font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         Small shop. No games.

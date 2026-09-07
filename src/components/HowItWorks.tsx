@@ -1,23 +1,23 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PenTool, ClipboardList, Package } from "lucide-react";
+import { Wand2, ClipboardList, Package } from "lucide-react";
 
 const steps = [
   {
-    icon: PenTool,
-    title: "Pick or request a design",
-    body: "Choose from the current drop, or message us your own idea and we'll mock it up together.",
+    icon: Wand2,
+    title: "Design it here",
+    body: "Type the name, pick the garment, color, lettering and size. The preview shows you roughly what you'll get.",
   },
   {
     icon: ClipboardList,
-    title: "Reserve with a preorder",
-    body: "Fill out the form below with your size and details. No payment is taken yet — we confirm with you directly first.",
+    title: "Send the order",
+    body: "No payment is taken on the site. Lenip messages you to confirm the design, the total and shipping first.",
   },
   {
     icon: Package,
-    title: "We print & ship",
-    body: "Once the batch is confirmed, your shirt is printed to order and shipped straight to you.",
+    title: "Pressed & shipped",
+    body: "Once you're happy and paid, it's cut, pressed by hand and shipped to your door.",
   },
 ];
 
