@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import type { PreorderInput } from "./validation";
+import type { DecodedArtwork } from "./artwork";
 
 function escapeHtml(value: string) {
   return value
@@ -30,17 +31,24 @@ function shippingAddress(order: PreorderInput) {
 // If email isn't configured yet, we no-op instead of failing the request —
 // the order is still saved locally (see lib/storage.ts) and logged to the
 // server console so nothing is silently lost during setup.
-export async function notifyOwnerOfPreorder(order: PreorderInput) {
+export async function notifyOwnerOfPreorder(
+  order: PreorderInput,
+  artwork?: DecodedArtwork
+) {
   if (!resend || !ownerEmail) {
     console.log(
-      "[email] RESEND_API_KEY / OWNER_EMAIL not set — skipping owner notification. Order:",
-      order
+      "[email] RESEND_API_KEY / OWNER_EMAIL not set — skipping owner notification.",
+      { ...order, artwork: order.artwork ? "[image attached]" : null }
     );
     return;
   }
 
   const rows: [string, string][] = [
-    ["Name to print", order.printName],
+    ["Design", order.layout],
+    ["Name to print", order.printName || "—"],
+    ["Second line", order.subtitle || "—"],
+    ["Artwork", artwork ? `Attached (${order.artwork?.fileName ?? "image"})` : "—"],
+    ["Design brief", order.artworkBrief || "—"],
     ["Garment", `${order.garmentColor} ${order.garment}`],
     ["Size", order.size],
     ["Quantity", String(order.quantity)],
@@ -68,12 +76,22 @@ export async function notifyOwnerOfPreorder(order: PreorderInput) {
     total and shipping before any payment is taken.</p>
   `;
 
+  const subjectDesign = order.printName || order.artwork?.fileName || "custom artwork";
+
   await resend.emails.send({
     from: fromEmail,
     to: ownerEmail,
     replyTo: order.email,
-    subject: `New order: "${order.printName}" — ${order.garment} (${order.size}) — ${order.customerName}`,
+    subject: `New order: "${subjectDesign}" — ${order.garment} (${order.size}) — ${order.customerName}`,
     html,
+    attachments: artwork
+      ? [
+          {
+            filename: `artwork.${artwork.extension}`,
+            content: artwork.bytes.toString("base64"),
+          },
+        ]
+      : undefined,
   });
 }
 
@@ -88,11 +106,21 @@ export async function sendCustomerConfirmation(order: PreorderInput) {
       <p>Hey ${escapeHtml(order.customerName)},</p>
       <p>Thanks for your order! Here's what we've got:</p>
       <ul>
-        <li><strong>${escapeHtml(order.printName)}</strong> in ${escapeHtml(
-          order.printColor
-        )} ${escapeHtml(order.finish.toLowerCase())}, ${escapeHtml(
-          order.font
-        )} lettering, ${escapeHtml(order.orientation.toLowerCase())}</li>
+        ${
+          order.printName
+            ? `<li><strong>${escapeHtml(order.printName)}</strong>${
+                order.subtitle ? ` / ${escapeHtml(order.subtitle)}` : ""
+              } in ${escapeHtml(order.printColor)} ${escapeHtml(
+                order.finish.toLowerCase()
+              )}, ${escapeHtml(order.font)} lettering</li>`
+            : ""
+        }
+        ${order.artwork ? `<li>Your artwork: ${escapeHtml(order.artwork.fileName)}</li>` : ""}
+        ${
+          order.artworkBrief
+            ? `<li>Design request: ${escapeHtml(order.artworkBrief)}</li>`
+            : ""
+        }
         <li>${escapeHtml(order.garmentColor)} ${escapeHtml(
           order.garment
         )}, size ${escapeHtml(order.size)}, quantity ${order.quantity}</li>

@@ -65,11 +65,27 @@ export const SIZE_GROUPS: { label: string; sizes: readonly Size[] }[] = [
   },
 ];
 
-/** Longest name we can comfortably print down a garment. */
-export const MAX_NAME_LENGTH = 14;
+/** What goes in the print area. */
+export const PRINT_LAYOUTS = ["Name only", "Artwork only", "Artwork + name"] as const;
+export type PrintLayout = (typeof PRINT_LAYOUTS)[number];
+
+/** Longest name we can comfortably print across a garment. */
+export const MAX_NAME_LENGTH = 18;
+
+/** Second line — a date, a phrase, a number. */
+export const MAX_SUBTITLE_LENGTH = 24;
 
 /** Characters a vinyl cutter can actually handle cleanly. */
-export const NAME_PATTERN = /^[A-Za-z0-9 '.-]+$/;
+export const NAME_PATTERN = /^[A-Za-z0-9 '.\-&!#]+$/;
+
+// Artwork the customer attaches. Kept small on purpose: this is a reference
+// image for the mockup and for Lenip to look at, not the final print file.
+// Serverless request bodies cap out around 4.5 MB and base64 inflates by a
+// third, so 2 MB of image is the safe ceiling here.
+export const MAX_ARTWORK_BYTES = 2 * 1024 * 1024;
+export const ARTWORK_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
+/** Longest edge we keep. Plenty for a preview, small enough to send. */
+export const ARTWORK_MAX_EDGE = 1400;
 
 // Zod needs non-empty tuples of the literal names.
 export const GARMENT_COLOR_NAMES = GARMENT_COLORS.map((c) => c.name) as [

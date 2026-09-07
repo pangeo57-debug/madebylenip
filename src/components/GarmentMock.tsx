@@ -12,6 +12,7 @@ import {
   type Garment,
   type Orientation,
   type PrintFont,
+  type PrintLayout,
 } from "@/lib/catalog";
 
 type GarmentMockProps = {
@@ -22,6 +23,9 @@ type GarmentMockProps = {
   font: PrintFont;
   orientation: Orientation;
   name: string;
+  layout?: PrintLayout;
+  subtitle?: string;
+  artworkUrl?: string;
   className?: string;
 };
 
@@ -73,6 +77,9 @@ export default function GarmentMock({
   font,
   orientation,
   name,
+  layout = "Name only",
+  subtitle = "",
+  artworkUrl,
   className = "",
 }: GarmentMockProps) {
   const rawId = useId().replace(/:/g, "");
@@ -87,9 +94,15 @@ export default function GarmentMock({
   const sleeves = hasLongSleeves ? LONG_SLEEVES : SHORT_SLEEVES;
   const isHoodie = garment === "Hoodie";
 
+  const cased = (value: string) =>
+    PRINT_FONT_CASE[font] === "upper" ? value.toUpperCase() : titleCase(value);
+
   const trimmed = name.trim();
-  const text =
-    PRINT_FONT_CASE[font] === "upper" ? trimmed.toUpperCase() : titleCase(trimmed);
+  const text = cased(trimmed);
+  const subText = cased(subtitle.trim());
+
+  const showArtwork = layout !== "Name only" && Boolean(artworkUrl);
+  const showText = layout !== "Artwork only" && Boolean(trimmed);
 
   // A hoodie's pocket eats into the print area, so its name sits higher and
   // shorter than on a plain body.
@@ -97,12 +110,34 @@ export default function GarmentMock({
   const verticalCenter = isHoodie ? 117 : 150;
   const horizontalY = isHoodie ? 108 : 120;
 
-  const chars = Math.max(text.length, 1);
   const widthFactor = PRINT_FONT_WIDTH[font];
-  const fontSize =
-    orientation === "Vertical"
-      ? Math.min(isHoodie ? 34 : 40, verticalSpan / (chars * widthFactor))
-      : Math.min(26, 80 / (chars * widthFactor));
+  const fit = (value: string, max: number, width: number) =>
+    Math.min(max, width / (Math.max(value.length, 1) * widthFactor));
+
+  // Artwork forces a stacked composition — a name running sideways next to a
+  // graphic isn't something you'd actually press onto a shirt.
+  const stacked = showArtwork;
+
+  const artBox = stacked
+    ? showText
+      ? isHoodie
+        ? { x: 86, y: 62, w: 68, h: 62 }
+        : { x: 82, y: 68, w: 76, h: 92 }
+      : isHoodie
+        ? { x: 84, y: 66, w: 72, h: 88 }
+        : { x: 82, y: 74, w: 76, h: 118 }
+    : null;
+
+  const stackedNameY = isHoodie ? 138 : 178;
+  const stackedSubY = isHoodie ? 152 : 197;
+
+  const fontSize = stacked
+    ? fit(text, 20, 74)
+    : orientation === "Vertical"
+      ? fit(text, isHoodie ? 34 : 40, verticalSpan)
+      : fit(text, 26, 80);
+
+  const subFontSize = fit(subText, 10, 72);
 
   return (
     <svg
@@ -170,10 +205,27 @@ export default function GarmentMock({
         </g>
       )}
 
-      {text && (
+      {showArtwork && artBox && (
+        <image
+          href={artworkUrl}
+          x={artBox.x}
+          y={artBox.y}
+          width={artBox.w}
+          height={artBox.h}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      )}
+
+      {showText && (
         <text
           x="120"
-          y={orientation === "Vertical" ? verticalCenter : horizontalY}
+          y={
+            stacked
+              ? stackedNameY
+              : orientation === "Vertical"
+                ? verticalCenter
+                : horizontalY
+          }
           fill={inkFill}
           textAnchor="middle"
           dominantBaseline="central"
@@ -184,10 +236,32 @@ export default function GarmentMock({
             letterSpacing: PRINT_FONT_TRACKING[font],
           }}
           transform={
-            orientation === "Vertical" ? `rotate(-90 120 ${verticalCenter})` : undefined
+            !stacked && orientation === "Vertical"
+              ? `rotate(-90 120 ${verticalCenter})`
+              : undefined
           }
         >
           {text}
+        </text>
+      )}
+
+      {/* A second line only reads properly when the main text runs across the
+          garment, so it's offered (and drawn) in exactly those layouts. */}
+      {showText && subText && (stacked || orientation === "Horizontal") && (
+        <text
+          x="120"
+          y={stacked ? stackedSubY : isHoodie ? 128 : 145}
+          fill={inkFill}
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{
+            fontFamily: PRINT_FONT_CSS[font],
+            fontSize: subFontSize,
+            fontWeight: 700,
+            letterSpacing: PRINT_FONT_TRACKING[font] + 0.5,
+          }}
+        >
+          {subText}
         </text>
       )}
 

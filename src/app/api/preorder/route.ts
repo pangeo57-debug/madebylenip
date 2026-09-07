@@ -3,6 +3,7 @@ import { preorderSchema } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rate-limit";
 import { savePreorder } from "@/lib/storage";
 import { notifyOwnerOfPreorder, sendCustomerConfirmation } from "@/lib/email";
+import { decodeArtwork, type DecodedArtwork } from "@/lib/artwork";
 
 export async function POST(req: NextRequest) {
   const ip =
@@ -39,10 +40,21 @@ export async function POST(req: NextRequest) {
 
   const order = parsed.data;
 
-  await savePreorder(order);
+  // The schema only checks the shape of the data URL; this confirms the bytes
+  // really are the image type they claim to be before we store or send them.
+  let artwork: DecodedArtwork | undefined;
+  if (order.artwork) {
+    const decoded = decodeArtwork(order.artwork.dataUrl);
+    if (!decoded.ok) {
+      return NextResponse.json({ error: decoded.reason }, { status: 400 });
+    }
+    artwork = decoded.artwork;
+  }
+
+  await savePreorder(order, artwork);
 
   try {
-    await notifyOwnerOfPreorder(order);
+    await notifyOwnerOfPreorder(order, artwork);
     await sendCustomerConfirmation(order);
   } catch (error) {
     // The order is already saved — don't fail the customer's request just

@@ -1,28 +1,79 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Loader2, ShieldCheck, Sparkles as SparklesIcon } from "lucide-react";
+import {
+  CheckCircle2,
+  ImagePlus,
+  Loader2,
+  ShieldCheck,
+  Sparkles as SparklesIcon,
+  X,
+} from "lucide-react";
 import GarmentMock from "./GarmentMock";
 import {
+  ARTWORK_MAX_EDGE,
+  ARTWORK_TYPES,
   FINISHES,
   GARMENTS,
   GARMENT_COLORS,
+  MAX_ARTWORK_BYTES,
   MAX_NAME_LENGTH,
+  MAX_SUBTITLE_LENGTH,
   ORIENTATIONS,
   PRINT_COLORS,
   PRINT_FONTS,
+  PRINT_LAYOUTS,
   SIZE_GROUPS,
   type Finish,
   type Garment,
   type Orientation,
   type PrintFont,
+  type PrintLayout,
 } from "@/lib/catalog";
 
 type Status = "idle" | "submitting" | "success" | "error";
+type Artwork = { fileName: string; dataUrl: string };
+
+/**
+ * Shrink an image in the browser before it ever leaves the device: keeps the
+ * request small enough for a serverless function and means a customer's 12 MP
+ * phone photo doesn't fail on upload.
+ */
+async function prepareArtwork(file: File): Promise<Artwork> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, ARTWORK_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Your browser couldn't process that image.");
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close?.();
+
+  // PNG first so transparent backgrounds survive; fall back to JPEG only if
+  // the PNG is too heavy to send.
+  let dataUrl = canvas.toDataURL("image/png");
+  if (dataUrl.length * 0.75 > MAX_ARTWORK_BYTES) {
+    dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  }
+  if (dataUrl.length * 0.75 > MAX_ARTWORK_BYTES) {
+    throw new Error("That image is too large even after resizing. Try a smaller one.");
+  }
+
+  return { fileName: file.name.slice(0, 120), dataUrl };
+}
 
 export default function Customizer() {
+  const [layout, setLayout] = useState<PrintLayout>("Name only");
   const [printName, setPrintName] = useState("Aria");
+  const [subtitle, setSubtitle] = useState("");
+  const [artwork, setArtwork] = useState<Artwork | null>(null);
+  const [artworkError, setArtworkError] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
   const [garment, setGarment] = useState<Garment>("Sweatshirt");
   const [garmentColor, setGarmentColor] = useState<string>("Heather Grey");
   const [printColor, setPrintColor] = useState<string>("Blush");
@@ -36,6 +87,35 @@ export default function Customizer() {
   const [errorMsg, setErrorMsg] = useState("");
   const [confirmed, setConfirmed] = useState<string>("");
 
+  async function handleArtworkChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setArtworkError("");
+
+    if (!ARTWORK_TYPES.includes(file.type as (typeof ARTWORK_TYPES)[number])) {
+      setArtworkError("Use a PNG, JPEG or WebP image.");
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      setArtwork(await prepareArtwork(file));
+      if (layout === "Name only") setLayout("Artwork + name");
+    } catch (err) {
+      setArtworkError(
+        err instanceof Error ? err.message : "That image couldn't be read."
+      );
+    } finally {
+      e.target.value = "";
+    }
+  }
+
+  function removeArtwork() {
+    setArtwork(null);
+    setArtworkError("");
+    if (layout !== "Name only") setLayout("Name only");
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("submitting");
@@ -45,7 +125,11 @@ export default function Customizer() {
     const data = new FormData(form);
 
     const payload = {
+      layout,
       printName,
+      subtitle,
+      artwork: artwork ?? undefined,
+      artworkBrief: data.get("artworkBrief"),
       garment,
       garmentColor,
       printColor,
@@ -80,7 +164,13 @@ export default function Customizer() {
         throw new Error(body.error || "Something went wrong. Please try again.");
       }
 
-      setConfirmed(`${quantity} × ${garmentColor} ${garment.toLowerCase()} — "${printName}"`);
+      const design =
+        layout === "Artwork only"
+          ? "your artwork"
+          : layout === "Artwork + name"
+            ? `your artwork + "${printName}"`
+            : `"${printName}"`;
+      setConfirmed(`${quantity} × ${garmentColor} ${garment.toLowerCase()} — ${design}`);
       setStatus("success");
       form.reset();
     } catch (err) {
@@ -120,6 +210,9 @@ export default function Customizer() {
                 font={font}
                 orientation={orientation}
                 name={printName}
+                layout={layout}
+                subtitle={subtitle}
+                artworkUrl={artwork?.dataUrl}
                 className="mx-auto w-full max-w-[280px] drop-shadow-2xl"
               />
               <p className="mt-4 text-center text-xs text-paper/40">
@@ -151,25 +244,128 @@ export default function Customizer() {
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="grid gap-8">
-              <Panel title="1. The name">
-                <div className="grid gap-1.5">
-                  <label htmlFor="printName" className="text-xs font-medium text-paper/60">
-                    Name to print
-                  </label>
-                  <input
-                    id="printName"
-                    value={printName}
-                    onChange={(e) => setPrintName(e.target.value)}
-                    maxLength={MAX_NAME_LENGTH}
-                    required
-                    className="input text-lg"
-                    placeholder="e.g. Aria"
-                  />
-                  <p className="text-xs text-paper/40">
-                    Up to {MAX_NAME_LENGTH} characters — letters, numbers, spaces,
-                    apostrophes and hyphens.
-                  </p>
-                </div>
+              <Panel title="1. The design">
+                <OptionRow label="What goes on it">
+                  {PRINT_LAYOUTS.map((option) => (
+                    <Chip
+                      key={option}
+                      active={layout === option}
+                      onClick={() => setLayout(option)}
+                    >
+                      {option}
+                    </Chip>
+                  ))}
+                </OptionRow>
+
+                {layout !== "Artwork only" && (
+                  <div className="grid gap-1.5">
+                    <label htmlFor="printName" className="text-xs font-medium text-paper/60">
+                      Name or text to print
+                    </label>
+                    <input
+                      id="printName"
+                      value={printName}
+                      onChange={(e) => setPrintName(e.target.value)}
+                      maxLength={MAX_NAME_LENGTH}
+                      className="input text-lg"
+                      placeholder="e.g. Aria"
+                    />
+                    <p className="text-xs text-paper/40">
+                      Up to {MAX_NAME_LENGTH} characters — letters, numbers, spaces
+                      and &apos; - . &amp; ! #
+                    </p>
+                  </div>
+                )}
+
+                {layout !== "Artwork only" &&
+                  (layout === "Artwork + name" || orientation === "Horizontal") && (
+                    <div className="grid gap-1.5">
+                      <label htmlFor="subtitle" className="text-xs font-medium text-paper/60">
+                        Second line (optional)
+                      </label>
+                      <input
+                        id="subtitle"
+                        value={subtitle}
+                        onChange={(e) => setSubtitle(e.target.value)}
+                        maxLength={MAX_SUBTITLE_LENGTH}
+                        className="input"
+                        placeholder="e.g. Est. 2026"
+                      />
+                    </div>
+                  )}
+
+                {layout !== "Name only" && (
+                  <div className="grid gap-3 rounded-2xl border border-dashed border-line p-4">
+                    <span className="text-xs font-medium text-paper/60">Your design</span>
+
+                    {artwork ? (
+                      <div className="flex items-center gap-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={artwork.dataUrl}
+                          alt="Your uploaded design"
+                          className="h-16 w-16 rounded-lg border border-line bg-ink object-contain"
+                        />
+                        <span className="min-w-0 flex-1 truncate text-xs text-paper/60">
+                          {artwork.fileName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={removeArtwork}
+                          className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+                        >
+                          <X size={12} /> Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInput.current?.click()}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-line px-4 py-2.5 text-xs font-semibold text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+                      >
+                        <ImagePlus size={14} />
+                        Upload an image
+                      </button>
+                    )}
+
+                    <input
+                      ref={fileInput}
+                      type="file"
+                      accept={ARTWORK_TYPES.join(",")}
+                      onChange={handleArtworkChange}
+                      className="hidden"
+                    />
+
+                    {artworkError && (
+                      <p role="alert" className="text-xs text-flame">
+                        {artworkError}
+                      </p>
+                    )}
+
+                    <p className="text-xs text-paper/40">
+                      PNG with a transparent background works best. Up to{" "}
+                      {Math.round(MAX_ARTWORK_BYTES / (1024 * 1024))} MB — we&apos;ll
+                      ask for a print-quality file when we confirm your order.
+                    </p>
+
+                    <div className="grid gap-1.5">
+                      <label
+                        htmlFor="artworkBrief"
+                        className="text-xs font-medium text-paper/60"
+                      >
+                        …or describe what you&apos;d like made
+                      </label>
+                      <textarea
+                        id="artworkBrief"
+                        name="artworkBrief"
+                        maxLength={500}
+                        rows={2}
+                        className="input resize-none"
+                        placeholder="e.g. a dragon breathing roses, in pastel colors"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <OptionRow label="Lettering">
                   {PRINT_FONTS.map((option) => (
@@ -183,17 +379,21 @@ export default function Customizer() {
                   ))}
                 </OptionRow>
 
-                <OptionRow label="Direction">
-                  {ORIENTATIONS.map((option) => (
-                    <Chip
-                      key={option}
-                      active={orientation === option}
-                      onClick={() => setOrientation(option)}
-                    >
-                      {option}
-                    </Chip>
-                  ))}
-                </OptionRow>
+                {/* With artwork the text always sits under the graphic, so a
+                    direction choice would be a control that does nothing. */}
+                {layout === "Name only" && (
+                  <OptionRow label="Direction">
+                    {ORIENTATIONS.map((option) => (
+                      <Chip
+                        key={option}
+                        active={orientation === option}
+                        onClick={() => setOrientation(option)}
+                      >
+                        {option}
+                      </Chip>
+                    ))}
+                  </OptionRow>
+                )}
               </Panel>
 
               <Panel title="2. The garment">

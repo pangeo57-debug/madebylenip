@@ -51,6 +51,16 @@ These are the spots that need Lenip's real details — all in one place each:
 - **Pricing** — deliberately not shown anywhere yet, because it hasn't been
   set. The site tells customers the total is confirmed by message, which is
   honest for made-to-order work. Add prices to `catalog.ts` when they exist.
+- **Artwork handling** — uploads are downscaled to 1400px and emailed to Lenip
+  as an attachment. That's a reference image, not a print file: at that size a
+  12-inch print is far below the ~300dpi printing needs, so the confirmation
+  message should ask the customer for the full-resolution original. If that
+  becomes a chore, add blob storage (Vercel Blob, S3, Cloudinary) and accept
+  the original directly — `src/lib/storage.ts` is the only place that changes.
+- **A dragon breathing roses can't be cut from vinyl.** Layered HTV works for
+  names and simple shapes; full-color artwork needs DTF transfers, sublimation
+  or a print-on-demand partner. Worth settling before promising custom art on
+  the site.
 - **Real photos** — the garments are stylized SVG mockups
   (`src/components/GarmentMock.tsx`), not photographs. They're good enough to
   launch with and they update live with the customizer, but real product photos
@@ -95,9 +105,19 @@ everything else is written so that's a small, contained change.
   `next.config.ts`.
 - **No payment or card data is collected or stored anywhere in this app.**
   That's intentional — see the roadmap below.
-- Orders contain real names and shipping addresses. Treat
-  `data/preorders.jsonl` as personal data: it's git-ignored, don't paste it
-  into chats or issues, and delete it when you're done testing.
+- Uploaded artwork is verified by **file signature**, not by the MIME type the
+  browser claims (`src/lib/artwork.ts`) — a renamed script can't get through as
+  a PNG. Size is capped at 2 MB, and the browser downscales before uploading so
+  a phone photo doesn't blow past the ~4.5 MB serverless request limit.
+- Orders contain real names, shipping addresses and uploaded images. Treat
+  `data/preorders.jsonl` and `data/artwork/` as personal data: they're
+  git-ignored, don't paste them into chats or issues, and delete them when
+  you're done testing.
+- **Customer-supplied artwork needs a human look before it's printed.** People
+  will upload copyrighted characters and brand logos; printing and selling
+  those is the shop's legal problem, not the customer's. Every order is
+  reviewed by Lenip before anything is pressed — keep it that way if design
+  generation is ever automated.
 - Secrets only live in environment variables, never in code. `.env*` is
   git-ignored (except `.env.example`).
 
