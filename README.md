@@ -12,6 +12,9 @@ Right now the site **does not process any payments**. It collects orders
 and the total personally before any money changes hands. See
 [Payments roadmap](#payments-roadmap) for how that grows.
 
+**New here?** [DEVELOPMENT.md](DEVELOPMENT.md) walks through running the site
+locally, spotting what's broken, and getting a change live.
+
 ## Getting started
 
 ```bash
